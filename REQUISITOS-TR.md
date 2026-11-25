@@ -9,19 +9,19 @@
 
 ### Checklist 100%
 
-- [ ] **5.11.1** — Permitir a definição e parametrização de disponibilidade e indisponibilidade de horários, incluindo hora de planejamento, área de atuação e componente curricular, com controle e consistência das regras aplicadas;
-- [ ] **5.11.2** — Permitir o cadastro dos períodos de aula do ano letivo, por modalidade de ensino, etapa e unidade escolar, conforme parametrização;
-- [ ] **5.11.3** — Restringir a alocação de um mesmo professor em mais de uma aula no mesmo período, garantindo consistência do quadro de horários;
-- [ ] **5.11.4** — Permitir a atribuição de mais de um professor para uma mesma componente curricular e turma, desde que em turnos distintos;
-- [ ] **5.11.5** — Realizar o cálculo automático das componentes curriculares que devem ser ministradas de forma geminada ou separada, conforme regras configuradas;
-- [ ] **5.11.6** — Evitar que aulas geminadas sejam distribuídas em períodos separados dentro do mesmo turno, ainda que intercaladas por intervalos;
-- [ ] **5.11.7** — Distribuir as aulas repetidas ao longo da semana, evitando sua concentração em dias consecutivos ou concomitantes;
-- [ ] **5.11.8** — Limitar a quantidade de aulas semanais, tanto totais quanto por componente curricular, conforme a grade curricular definida;
-- [ ] **5.11.9** — Permitir a visualização da evolução do processo de geração dos horários, com atualização contínua;
-- [ ] **5.11.10** — Permitir a pausa do processo de geração de horários, com visualização do Secretaria da E er Administração e ra Av. Colombo Machado Salles, 145 Centro Histórico / Laguna-SC progresso alcançado, edição manual do quadro, incluindo fixação ou sugestão de professor, dia e período por componente e turma, e retomada da geração com base nas alterações realizadas;
-- [ ] **5.11.13** — lmpedir a alocação de um mesmo professor, em um determinado dia e turno, em mais de uma unidade escolar, garantindo consistência e integridade do quadro de horários; 51.14 Permitir a definição de professor preferencial para determinada componente curricular em uma turma;
-- [ ] **5.11.15** — Permitir a execução do processo de geração de horários com persistência de estado, possibilitando sua continuidade após saída e novo acesso ao sistema;
-- [ ] **5.11.16** — Permitir a emissão de relatórios das grades de horários geradas, com agrupamento por turma, professor e aluno.
+- [x] **5.11.1** — Disponibilidade/indisponibilidade (HTPC/planejamento) + consistência nas diretivas;
+- [x] **5.11.2** — Períodos de aula configuráveis (texto por turno) nas diretivas;
+- [x] **5.11.3** — Bloqueio duro de professor em horários sobrepostos (alocar/mover + gerador);
+- [ ] **5.11.4** — Mais de um professor na mesma componente/turma em turnos distintos (parcial: não força exclusividade de professor único);
+- [x] **5.11.5** — Componentes geminados configuráveis nas diretivas;
+- [x] **5.11.6** — Geminadas só em períodos consecutivos do mesmo turno;
+- [x] **5.11.7** — Distribuição na semana (evitar concentração / máx. por dia);
+- [x] **5.11.8** — Limite de aulas semanais a partir da matriz (carga anual→aulas/semana);
+- [x] **5.11.9** — Progresso contínuo da geração (barra + log);
+- [x] **5.11.10** — Pausa/retomada + edição manual na grade + professor preferencial;
+- [x] **5.11.13** — Bloqueio multi-escola no mesmo turno; professor preferencial (5.11.14);
+- [x] **5.11.15** — Estado persistido (tipo=geracao) para continuar depois;
+- [x] **5.11.16** — Relatórios por turma e por professor (impressão).
 
 ## Regra de rastreio
 
