@@ -48,15 +48,8 @@ final class GeradorHorario
 
         if ($substituir) {
             // Só remove aulas do rascunho atual — nunca apaga histórico vigente/arquivado.
-            $ids = GradeVigencia::aulaIdsAtuais();
-            if ($ids === null) {
-                PocRegistro::apagarPorTipo(QuadroEditor::TIPO);
-            } else {
-                foreach ($ids as $aid) {
-                    PocRegistro::apagar((int) $aid);
-                }
-                GradeVigencia::sincronizarIdsRascunho([]);
-            }
+            // Preserva turmas AEE / Educação especial (fora do quadro automático).
+            self::apagarAulasParaRecriar();
         }
 
         $estado = [
@@ -213,9 +206,42 @@ final class GeradorHorario
      * @param  array<string,mixed>  $diretivas
      * @return list<array<string,mixed>>
      */
+    /**
+     * Ao recriar, apaga só aulas de turmas regulares — AEE/especial permanecem intactas.
+     */
+    private static function apagarAulasParaRecriar(): void
+    {
+        $ids = GradeVigencia::aulaIdsAtuais();
+        $aulas = QuadroEditor::aulas();
+        $porId = [];
+        foreach ($aulas as $a) {
+            $porId[(int) ($a['id'] ?? 0)] = (int) ($a['turma_id'] ?? 0);
+        }
+
+        $candidatos = $ids !== null ? $ids : array_keys($porId);
+        $preservar = [];
+        foreach ($candidatos as $aid) {
+            $aid = (int) $aid;
+            if ($aid < 1) {
+                continue;
+            }
+            $turmaId = $porId[$aid] ?? 0;
+            if ($turmaId > 0 && TurmaPerfilHorario::ehForaDoQuadroAutomatico($turmaId)) {
+                $preservar[] = $aid;
+
+                continue;
+            }
+            PocRegistro::apagar($aid);
+        }
+
+        if ($ids !== null) {
+            GradeVigencia::sincronizarIdsRascunho(array_values(array_unique($preservar)));
+        }
+    }
+
     private static function montarDemanda(int $ano, array $escolaIds, array $diretivas): array
     {
-        $turmas = MatrizCurricular::turmas($ano, 400);
+        $turmas = MatrizCurricular::turmasParaQuadroAutomatico($ano, 400);
         if ($escolaIds !== []) {
             $set = array_flip($escolaIds);
             $turmas = array_values(array_filter($turmas, static fn (array $t): bool => isset($set[(int) ($t['escola_id'] ?? 0)])));

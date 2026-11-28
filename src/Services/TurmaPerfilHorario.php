@@ -42,6 +42,18 @@ final class TurmaPerfilHorario
                 't.hora_inicial_vespertino',
                 't.hora_final_vespertino',
             ];
+            if (Schema::hasColumn('pmieducar.turma', 'tipo_atendimento')) {
+                $cols[] = 't.tipo_atendimento';
+            }
+            if (Schema::hasColumn('pmieducar.turma', 'classe_especial')) {
+                $cols[] = 't.classe_especial';
+            }
+            if (Schema::hasColumn('pmieducar.turma', 'atividades_aee')) {
+                $cols[] = 't.atividades_aee';
+            }
+            if (Schema::hasColumn('pmieducar.curso', 'modalidade_curso')) {
+                $cols[] = 'c.modalidade_curso';
+            }
             $q = DB::table('pmieducar.turma as t')
                 ->leftJoin('pmieducar.turma_turno as tt', 'tt.id', '=', 't.turma_turno_id')
                 ->leftJoin('pmieducar.escola as e', 'e.cod_escola', '=', 't.ref_ref_cod_escola')
@@ -58,8 +70,16 @@ final class TurmaPerfilHorario
             $turno = $r->turno !== null ? (string) $r->turno : null;
             $turnoId = $r->turno_id !== null ? (int) $r->turno_id : null;
             $ehIntegral = $turnoId === 4 || mb_stripos((string) $turno, 'integral') !== false;
-            $ehAee = $curso !== null && (str_contains(mb_strtolower($curso), 'aee') || str_contains(mb_strtolower($nome), 'aee'));
-            $ehAc = self::pareceAtividadeComplementar($nome, $curso);
+
+            $ehAee = self::ehAeeOuEducacaoEspecial(
+                $nome,
+                $curso,
+                $r->tipo_atendimento ?? null,
+                $r->modalidade_curso ?? null,
+                $r->classe_especial ?? null,
+                $r->atividades_aee ?? null,
+            );
+            $ehAc = ! $ehAee && self::pareceAtividadeComplementar($nome, $curso);
 
             $modalidade = $ehAee ? 'aee' : ($ehAc ? 'ac' : ($ehIntegral ? 'integral' : 'regular'));
 
@@ -243,6 +263,130 @@ final class TurmaPerfilHorario
             'integral' => 'Integral · '.($turma['nome'] ?? ''),
             default => 'Ensino regular · '.($turma['nome'] ?? ''),
         };
+    }
+
+    /**
+     * Turmas de AEE / Educação especial / classe especial ficam fora do quadro automático:
+     * não usam matriz curricular regular e gerariam pendências permanentes.
+     */
+    public static function ehAeeOuEducacaoEspecial(
+        string $nome = '',
+        ?string $curso = null,
+        mixed $tipoAtendimento = null,
+        mixed $modalidadeCurso = null,
+        mixed $classeEspecial = null,
+        mixed $atividadesAee = null,
+    ): bool {
+        // ModalidadeCurso::EDUCACAO_ESPECIAL = 2
+        if ((int) $modalidadeCurso === 2) {
+            return true;
+        }
+
+        if ($classeEspecial === 1 || $classeEspecial === true || $classeEspecial === '1' || $classeEspecial === 't') {
+            return true;
+        }
+
+        $ativ = is_string($atividadesAee) ? trim($atividadesAee) : '';
+        if ($ativ !== '' && $ativ !== '{}' && $ativ !== '[]' && strcasecmp($ativ, 'null') !== 0) {
+            return true;
+        }
+
+        // TipoAtendimentoTurma::AEE = 5
+        if (in_array(5, self::normalizarTiposAtendimento($tipoAtendimento), true)) {
+            return true;
+        }
+
+        $blob = mb_strtolower($nome.' '.($curso ?? ''));
+
+        return str_contains($blob, 'aee')
+            || str_contains($blob, 'atendimento educacional')
+            || str_contains($blob, 'educação especial')
+            || str_contains($blob, 'educacao especial')
+            || str_contains($blob, 'classe especial');
+    }
+
+    /** Cache por request: turma fora do gerar/recriar automático. */
+    public static function ehForaDoQuadroAutomatico(int $turmaId): bool
+    {
+        static $cache = [];
+        if ($turmaId < 1) {
+            return false;
+        }
+        if (array_key_exists($turmaId, $cache)) {
+            return $cache[$turmaId];
+        }
+
+        $detalhe = self::detalhe($turmaId);
+        if ($detalhe !== null) {
+            return $cache[$turmaId] = ! empty($detalhe['eh_aee']);
+        }
+
+        try {
+            if (! Schema::hasTable('pmieducar.turma')) {
+                return $cache[$turmaId] = false;
+            }
+            $cols = ['t.nm_turma as nome', 'c.nm_curso as curso'];
+            $q = DB::table('pmieducar.turma as t')
+                ->leftJoin('pmieducar.curso as c', 'c.cod_curso', '=', 't.ref_cod_curso')
+                ->where('t.cod_turma', $turmaId);
+            if (Schema::hasColumn('pmieducar.turma', 'tipo_atendimento')) {
+                $cols[] = 't.tipo_atendimento';
+            }
+            if (Schema::hasColumn('pmieducar.turma', 'classe_especial')) {
+                $cols[] = 't.classe_especial';
+            }
+            if (Schema::hasColumn('pmieducar.turma', 'atividades_aee')) {
+                $cols[] = 't.atividades_aee';
+            }
+            if (Schema::hasColumn('pmieducar.curso', 'modalidade_curso')) {
+                $cols[] = 'c.modalidade_curso';
+            }
+            $r = $q->first($cols);
+            if ($r === null) {
+                return $cache[$turmaId] = false;
+            }
+
+            return $cache[$turmaId] = self::ehAeeOuEducacaoEspecial(
+                (string) $r->nome,
+                $r->curso !== null ? (string) $r->curso : null,
+                $r->tipo_atendimento ?? null,
+                $r->modalidade_curso ?? null,
+                $r->classe_especial ?? null,
+                $r->atividades_aee ?? null,
+            );
+        } catch (\Throwable) {
+            return $cache[$turmaId] = false;
+        }
+    }
+
+    /** @return list<int> */
+    public static function normalizarTiposAtendimento(mixed $tipoAtendimento): array
+    {
+        if ($tipoAtendimento === null || $tipoAtendimento === '' || $tipoAtendimento === false) {
+            return [];
+        }
+        if (is_int($tipoAtendimento) || (is_string($tipoAtendimento) && ctype_digit($tipoAtendimento))) {
+            return [(int) $tipoAtendimento];
+        }
+        if (is_array($tipoAtendimento)) {
+            return array_values(array_map('intval', $tipoAtendimento));
+        }
+        $s = trim((string) $tipoAtendimento);
+        if ($s === '' || $s === '{}' || $s === '[]') {
+            return [];
+        }
+        // PostgreSQL array: {5} ou {0,5}
+        if ($s[0] === '{') {
+            $s = trim($s, '{}');
+        }
+        if ($s === '') {
+            return [];
+        }
+
+        return array_values(array_filter(array_map(
+            static fn (string $p): int => (int) trim($p),
+            preg_split('/\s*,\s*/', $s) ?: []
+        ), static fn (int $n): bool => $n >= 0));
     }
 
     private static function pareceAtividadeComplementar(string $nome, ?string $curso): bool

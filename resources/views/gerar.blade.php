@@ -55,6 +55,10 @@
             'placeholder' => 'Buscar escola…',
         ])
         <label><input type="checkbox" name="substituir" id="substituir" value="1" checked> Apagar o quadro atual e montar de novo</label>
+        <p style="margin:6px 0 0;color:var(--suave);font-size:.82rem;line-height:1.4">
+            Turmas de <strong>AEE / Educação especial</strong> não entram na geração nem são apagadas na recriação
+            (não usam matriz curricular regular).
+        </p>
         <div class="acoes">
             <button type="button" class="botao" id="btn-iniciar"><i class="fa fa-magic"></i> Iniciar geração</button>
             <button type="button" class="botao claro" id="btn-continuar" @if(!($e && ($e['status'] ?? '') === 'pausado')) style="display:none" @endif><i class="fa fa-forward"></i> Continuar</button>

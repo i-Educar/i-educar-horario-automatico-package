@@ -237,31 +237,55 @@ final class MatrizCurricular
         }
 
         try {
+            $cols = [
+                't.cod_turma as id',
+                't.nm_turma as nome',
+                't.ref_ref_cod_escola as escola_id',
+                'j.fantasia as escola',
+                't.ano',
+                't.ref_cod_regente as regente_id',
+                'pr.nome as regente',
+                't.turma_turno_id as turno_id',
+                'tt.nome as turno',
+                'c.nm_curso as curso',
+            ];
+            if (Schema::hasColumn('pmieducar.turma', 'tipo_atendimento')) {
+                $cols[] = 't.tipo_atendimento';
+            }
+            if (Schema::hasColumn('pmieducar.turma', 'classe_especial')) {
+                $cols[] = 't.classe_especial';
+            }
+            if (Schema::hasColumn('pmieducar.turma', 'atividades_aee')) {
+                $cols[] = 't.atividades_aee';
+            }
+            if (Schema::hasColumn('pmieducar.curso', 'modalidade_curso')) {
+                $cols[] = 'c.modalidade_curso';
+            }
+
             $q = DB::table('pmieducar.turma as t')
                 ->leftJoin('cadastro.pessoa as pr', 'pr.idpes', '=', 't.ref_cod_regente')
                 ->leftJoin('pmieducar.turma_turno as tt', 'tt.id', '=', 't.turma_turno_id')
                 ->leftJoin('pmieducar.escola as e', 'e.cod_escola', '=', 't.ref_ref_cod_escola')
                 ->leftJoin('cadastro.juridica as j', 'j.idpes', '=', 'e.ref_idpes')
+                ->leftJoin('pmieducar.curso as c', 'c.cod_curso', '=', 't.ref_cod_curso')
                 ->where('t.ativo', 1)
                 ->where('t.ano', $ano)
                 ->orderBy('j.fantasia')
                 ->orderBy('t.nm_turma')
                 ->limit($limite)
-                ->get([
-                    't.cod_turma as id',
-                    't.nm_turma as nome',
-                    't.ref_ref_cod_escola as escola_id',
-                    'j.fantasia as escola',
-                    't.ano',
-                    't.ref_cod_regente as regente_id',
-                    'pr.nome as regente',
-                    't.turma_turno_id as turno_id',
-                    'tt.nome as turno',
-                ]);
+                ->get($cols);
 
             $out = [];
             foreach ($q as $r) {
                 $id = (int) $r->id;
+                $ehAee = TurmaPerfilHorario::ehAeeOuEducacaoEspecial(
+                    (string) $r->nome,
+                    isset($r->curso) && $r->curso !== null ? (string) $r->curso : null,
+                    $r->tipo_atendimento ?? null,
+                    $r->modalidade_curso ?? null,
+                    $r->classe_especial ?? null,
+                    $r->atividades_aee ?? null,
+                );
                 $out[] = [
                     'id' => $id,
                     'nome' => (string) $r->nome,
@@ -272,7 +296,10 @@ final class MatrizCurricular
                     'regente' => $r->regente !== null ? (string) $r->regente : null,
                     'turno_id' => isset($r->turno_id) && $r->turno_id !== null ? (int) $r->turno_id : null,
                     'turno' => isset($r->turno) && $r->turno !== null ? (string) $r->turno : null,
-                    'componentes' => count(self::componentesParaTurma($id)),
+                    'curso' => isset($r->curso) && $r->curso !== null ? (string) $r->curso : null,
+                    'eh_aee' => $ehAee,
+                    'fora_quadro_automatico' => $ehAee,
+                    'componentes' => $ehAee ? 0 : count(self::componentesParaTurma($id)),
                 ];
             }
 
@@ -280,6 +307,19 @@ final class MatrizCurricular
         } catch (\Throwable) {
             return [];
         }
+    }
+
+    /**
+     * Turmas elegíveis ao gerar/recriar horário (exclui AEE / Educação especial).
+     *
+     * @return list<array<string,mixed>>
+     */
+    public static function turmasParaQuadroAutomatico(int $ano, int $limite = 400): array
+    {
+        return array_values(array_filter(
+            self::turmas($ano, $limite),
+            static fn (array $t): bool => empty($t['fora_quadro_automatico']) && empty($t['eh_aee'])
+        ));
     }
 
     public static function escolaDaTurma(int $turmaId): ?int
@@ -321,24 +361,33 @@ final class MatrizCurricular
             return [];
         }
         try {
-            return DB::table('pmieducar.turma as t')
-                ->join('pmieducar.escola as e', 'e.cod_escola', '=', 't.ref_ref_cod_escola')
+            // Contagem para o quadro automático: exclui AEE / Educação especial.
+            $porEscola = [];
+            foreach (self::turmasParaQuadroAutomatico($ano, 2000) as $t) {
+                $eid = (int) ($t['escola_id'] ?? 0);
+                if ($eid < 1) {
+                    continue;
+                }
+                $porEscola[$eid] = ($porEscola[$eid] ?? 0) + 1;
+            }
+            if ($porEscola === []) {
+                return [];
+            }
+
+            return DB::table('pmieducar.escola as e')
                 ->leftJoin('cadastro.juridica as j', 'j.idpes', '=', 'e.ref_idpes')
-                ->where('t.ativo', 1)
-                ->where('t.ano', $ano)
                 ->where('e.ativo', 1)
-                ->groupBy('e.cod_escola', 'j.fantasia')
+                ->whereIn('e.cod_escola', array_keys($porEscola))
                 ->orderBy('j.fantasia')
                 ->limit($limite)
                 ->get([
                     'e.cod_escola as id',
                     DB::raw('COALESCE(j.fantasia, e.cod_escola::text) as nome'),
-                    DB::raw('COUNT(t.cod_turma) as turmas'),
                 ])
                 ->map(static fn ($r): array => [
                     'id' => (int) $r->id,
                     'nome' => (string) $r->nome,
-                    'turmas' => (int) $r->turmas,
+                    'turmas' => (int) ($porEscola[(int) $r->id] ?? 0),
                 ])
                 ->all();
         } catch (\Throwable) {

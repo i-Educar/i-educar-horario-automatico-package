@@ -5,12 +5,20 @@ declare(strict_types=1);
 require __DIR__.'/../src/Services/DiretivasHorario.php';
 require __DIR__.'/../src/Services/DetectorChoque.php';
 require __DIR__.'/../src/Services/GradeSemanal.php';
+require __DIR__.'/../src/Services/TurmaPerfilHorario.php';
 
 $ok=0; $fail=0;
 $assert = static function(bool $c, string $m) use (&$ok,&$fail): void {
   echo ($c? '  OK  ':' FAIL ').$m."\n";
   $c ? $ok++ : $fail++;
 };
+
+$Aee = \iEducar\Packages\BuritiHorarioAutomatico\Services\TurmaPerfilHorario::class;
+$assert($Aee::ehAeeOuEducacaoEspecial('AEE Manhã', 'AEE', '{5}') === true, 'detecta AEE por tipo_atendimento 5');
+$assert($Aee::ehAeeOuEducacaoEspecial('1º Ano', 'Educação especial', null, 2) === true, 'detecta Educação especial por modalidade');
+$assert($Aee::ehAeeOuEducacaoEspecial('Classe especial A', 'Ensino regular', null, 1, 1) === true, 'detecta classe_especial');
+$assert($Aee::ehAeeOuEducacaoEspecial('3º Ano A', 'Ensino Fundamental', '{0}', 1, 0) === false, 'turma regular não é AEE');
+$assert($Aee::normalizarTiposAtendimento('{0,5}') === [0, 5], 'normaliza array PG de tipos');
 
 $diretivas = [
   'bloquear_choque_professor' => true,

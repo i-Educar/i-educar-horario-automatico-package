@@ -41,8 +41,11 @@ final class VerificadorQuadro
             ];
         }
 
-        // Demanda da matriz × alocado
+        // Demanda da matriz × alocado (AEE / Educação especial fora do escopo)
         foreach ($turmaIds as $tid) {
+            if (TurmaPerfilHorario::ehForaDoQuadroAutomatico($tid)) {
+                continue;
+            }
             $comps = MatrizCurricular::componentesParaTurma($tid);
             $semanas = (int) (DiretivasHorario::atuais()['semanas_letivas'] ?? 40);
             $cargaPadrao = (int) (DiretivasHorario::atuais()['carga_padrao_aulas'] ?? 1);

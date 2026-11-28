@@ -31,10 +31,22 @@ final class ValidadorDemandaHorario
         $semanas = max(20, min(50, (int) ($diretivas['semanas_letivas'] ?? 40)));
         $cargaPadrao = max(1, (int) ($diretivas['carga_padrao_aulas'] ?? 1));
 
-        $turmas = MatrizCurricular::turmas($ano, 400);
+        $todas = MatrizCurricular::turmas($ano, 400);
         if ($escolaIds !== []) {
             $set = array_flip($escolaIds);
-            $turmas = array_values(array_filter($turmas, static fn (array $t): bool => isset($set[(int) ($t['escola_id'] ?? 0)])));
+            $todas = array_values(array_filter($todas, static fn (array $t): bool => isset($set[(int) ($t['escola_id'] ?? 0)])));
+        }
+
+        $ignoradasAee = 0;
+        $turmas = [];
+        foreach ($todas as $turma) {
+            if (! empty($turma['fora_quadro_automatico']) || ! empty($turma['eh_aee'])
+                || TurmaPerfilHorario::ehForaDoQuadroAutomatico((int) $turma['id'])) {
+                $ignoradasAee++;
+
+                continue;
+            }
+            $turmas[] = $turma;
         }
 
         $erros = [];
@@ -42,6 +54,15 @@ final class ValidadorDemandaHorario
         $resumoTurmas = [];
         $totalDisc = 0;
         $totalAulas = 0;
+
+        if ($ignoradasAee > 0) {
+            $avisos[] = [
+                'tipo' => 'aee_ignorada',
+                'turma' => null,
+                'disciplina' => null,
+                'mensagem' => $ignoradasAee.' turma(s) de AEE / Educação especial foram ignoradas na validação e na geração (sem matriz curricular regular).',
+            ];
+        }
 
         foreach ($turmas as $turma) {
             $comps = MatrizCurricular::componentesParaTurma((int) $turma['id']);
