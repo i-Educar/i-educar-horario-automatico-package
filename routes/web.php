@@ -24,6 +24,7 @@ Route::prefix('horario-automatico')->group(function (): void {
     Route::get('/choques', [HorarioController::class, 'choques']);
     Route::get('/cargos', [HorarioController::class, 'cargos']);
     Route::get('/relatorio', [HorarioController::class, 'relatorio']);
+    Route::post('/relatorio/exportar', [HorarioController::class, 'exportarRelatorio']);
     Route::post('/fazer-valer', [HorarioController::class, 'fazerValer']);
     Route::get('/fazer-valer', [HorarioController::class, 'index']);
     Route::post('/nova-versao', [HorarioController::class, 'novaVersao']);

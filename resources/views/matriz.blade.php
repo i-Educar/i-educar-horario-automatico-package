@@ -7,8 +7,8 @@
     Confira quantas aulas por semana cada disciplina precisa. Os números vêm do cadastro da escola no i-Educar; aqui você pode ajustar quando faltar informação.
 @endsection
 @section('acoes-topo')
-    <a class="botao claro" href="{{ url('/horario-automatico/validar') }}"><i class="fa fa-check-square-o"></i> Verificar demanda</a>
-    <a class="botao claro" href="{{ url('/horario-automatico/gerar') }}"><i class="fa fa-magic"></i> Gerar quadro</a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/validar') }}" title="Verificar demanda" aria-label="Verificar demanda"><i aria-hidden="true" class="fa fa-check-square-o"></i></a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/gerar') }}" title="Gerar quadro" aria-label="Gerar quadro"><i aria-hidden="true" class="fa fa-magic"></i></a>
 @endsection
 
 @section('conteudo')

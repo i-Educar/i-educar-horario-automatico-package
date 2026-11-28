@@ -7,12 +7,23 @@
     Agrupamento por turma ou professor para impressão / conferência
 @endsection
 @section('acoes-topo')
-    <a class="botao claro" href="{{ url('/horario-automatico/relatorio?por=turma') }}"><i class="fa fa-graduation-cap"></i> Por turma</a>
-    <a class="botao claro" href="{{ url('/horario-automatico/relatorio?por=professor') }}"><i class="fa fa-user"></i> Por professor</a>
-    <button type="button" class="botao" onclick="window.print()"><i class="fa fa-print"></i> Imprimir</button>
+    @include('exportacao::partials.botoes-exportar', [
+        'action' => url('/horario-automatico/relatorio/exportar'),
+        'formatos' => ['pdf', 'xlsx', 'csv'],
+        'opcoes' => [
+            ['value' => 'grades', 'label' => 'Grades geradas (visão atual)'],
+        ],
+        'campoExtra' => ['por' => $agrupar ?? 'turma'],
+        'tituloModal' => 'Download — Quadro de horários',
+    ])
+    <a class="botao claro icone" href="{{ url('/horario-automatico/relatorio?por=turma') }}" title="Por turma" aria-label="Por turma"><i aria-hidden="true" class="fa fa-graduation-cap"></i></a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/relatorio?por=professor') }}" title="Por professor" aria-label="Por professor"><i aria-hidden="true" class="fa fa-user"></i></a>
+    <button type="button" class="botao claro icone" onclick="window.print()" title="Imprimir" aria-label="Imprimir"><i aria-hidden="true" class="fa fa-print"></i></button>
 @endsection
 
 @section('conteudo')
+
+
 <style>
 @media print {
     .lateral, .topo, .acoes-tela, footer.rodape { display: none !important; }

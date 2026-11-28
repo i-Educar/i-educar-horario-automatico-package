@@ -4,8 +4,8 @@ namespace iEducar\Packages\BuritiHorarioAutomatico\Support;
 
 final class Identidade
 {
-    public const COR = '#16384a';
-    public const DESTAQUE = '#1f4e66';
+    public const COR = '#0f1b2d';
+    public const DESTAQUE = '#1a5f9e';
     public const COR_CLARA = '#e8eef2';
     public const ICONE = 'fa-calendar';
     public const NOME = 'Quadro de horários';

@@ -6,7 +6,7 @@
 | TR Laguna | **5.11** |
 | Prioridade | **P0** |
 | Nota atual (executivo) | **D** |
-| Fonte | `tmp/DOC-EXECUTIVO-PE-77-2026-LAGUNA-IEDUCAR.md` |
+| Fonte | `packages/buriti/docs/laguna/DOC-EXECUTIVO-PE-77-2026-LAGUNA-IEDUCAR.md` |
 | Regra de ouro | Pregão Eletrônico 77/2026 · Laguna/SC · PoC ≥ 85% por módulo · gaps ≤ 30 dias |
 | Base atual | Quadro de horário apenas manual no core |
 

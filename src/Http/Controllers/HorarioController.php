@@ -24,6 +24,7 @@ use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
 class HorarioController extends Controller
@@ -118,14 +119,14 @@ class HorarioController extends Controller
                 .count($diretivas['periodos'] ?? []).' períodos · '
                 .((($diretivas['bloquear_multi_escola_turno'] ?? true) ? '1 escola/turno' : 'multi-escola ok')),
             'atalhos' => [
-                ['url' => '/horario-automatico/matriz', 'icone' => 'fa-th-list', 'rotulo' => '1. Matriz', 'meta' => 'Aulas por disciplina'],
-                ['url' => '/horario-automatico/validar', 'icone' => 'fa-check-square-o', 'rotulo' => '2. Verificar', 'meta' => 'Faltas e excessos'],
-                ['url' => '/horario-automatico/diretivas', 'icone' => 'fa-sliders', 'rotulo' => '3. Regras', 'meta' => 'Períodos e limites'],
-                ['url' => '/horario-automatico/gerar', 'icone' => 'fa-magic', 'rotulo' => '4. Gerar', 'meta' => 'Montagem automática'],
-                ['url' => '/horario-automatico/grade', 'icone' => 'fa-table', 'rotulo' => '5. Ajustar', 'meta' => 'Quadro semanal'],
+                ['url' => '/horario-automatico/matriz', 'icone' => 'fa-th-list', 'rotulo' => 'Matriz', 'meta' => 'Aulas por disciplina'],
+                ['url' => '/horario-automatico/validar', 'icone' => 'fa-check-square-o', 'rotulo' => 'Verificar', 'meta' => 'Faltas e excessos'],
+                ['url' => '/horario-automatico/diretivas', 'icone' => 'fa-sliders', 'rotulo' => 'Regras', 'meta' => 'Períodos e limites'],
+                ['url' => '/horario-automatico/gerar', 'icone' => 'fa-magic', 'rotulo' => 'Gerar', 'meta' => 'Montagem automática'],
+                ['url' => '/horario-automatico/grade', 'icone' => 'fa-table', 'rotulo' => 'Ajustar', 'meta' => 'Quadro semanal'],
                 ['url' => '/horario-automatico/choques', 'icone' => 'fa-warning', 'rotulo' => 'Conflitos', 'meta' => 'Choques de horário'],
             ],
-            'fluxoTitulo' => 'Passo a passo da rede',
+            'fluxoTitulo' => 'Atalhos da rede',
             'vigencia' => GradeVigencia::atual(),
             'gradeBloqueada' => GradeVigencia::bloqueadaParaEdicao(),
             'podeFazerValer' => Acesso::permite(Processos::FAZER_VALER, 'gravar'),
@@ -728,6 +729,52 @@ class HorarioController extends Controller
             'grupos' => $grupos,
             'dias' => [1 => 'Seg', 2 => 'Ter', 3 => 'Qua', 4 => 'Qui', 5 => 'Sex'],
         ]);
+    }
+
+    public function exportarRelatorio(Request $request): Response|RedirectResponse
+    {
+        $agrupar = $request->input('por', $request->query('por')) === 'professor' ? 'professor' : 'turma';
+        $formato = strtolower(trim((string) $request->input('formato', 'pdf')));
+        $grade = QuadroEditor::aulas();
+        $dias = [1 => 'Seg', 2 => 'Ter', 3 => 'Qua', 4 => 'Qui', 5 => 'Sex'];
+
+        usort($grade, static function ($a, $b) use ($agrupar) {
+            $ga = $agrupar === 'professor' ? (string) ($a['professor'] ?? '') : (string) ($a['turma'] ?? '');
+            $gb = $agrupar === 'professor' ? (string) ($b['professor'] ?? '') : (string) ($b['turma'] ?? '');
+            if ($ga !== $gb) {
+                return $ga <=> $gb;
+            }
+            $da = (int) ($a['dia'] ?? 0);
+            $db = (int) ($b['dia'] ?? 0);
+            if ($da !== $db) {
+                return $da <=> $db;
+            }
+
+            return ((string) ($a['inicio'] ?? '')) <=> ((string) ($b['inicio'] ?? ''));
+        });
+
+        $linhas = [];
+        foreach ($grade as $a) {
+            $grupo = $agrupar === 'professor' ? (string) ($a['professor'] ?? '') : (string) ($a['turma'] ?? '');
+            $linhas[] = [
+                $grupo,
+                $dias[$a['dia'] ?? 0] ?? ($a['dia'] ?? ''),
+                ((string) ($a['inicio'] ?? '')).'–'.((string) ($a['fim'] ?? '')),
+                (string) ($a['componente'] ?? ''),
+                $agrupar === 'turma' ? (string) ($a['professor'] ?? '') : (string) ($a['turma'] ?? ''),
+            ];
+        }
+
+        return \iEducar\Packages\BuritiExportacaoUnificada\Support\ExportacaoModulo::download(
+            'Grade de horários',
+            ['Grupo', 'Dia', 'Horário', 'Componente', $agrupar === 'turma' ? 'Professor' : 'Turma'],
+            $linhas,
+            'Horário automático',
+            $formato,
+            $agrupar === 'professor' ? 'Agrupado por professor' : 'Agrupado por turma',
+            null,
+            'horario-relatorio',
+        );
     }
 
     private function voltarGrade(Request $request): string

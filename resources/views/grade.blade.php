@@ -7,17 +7,17 @@
     Monte a semana com entrada, tempo de cada aula e saída. Turmas integrais e EF + atividade complementar aparecem juntas quando houver vínculo.
 @endsection
 @section('acoes-topo')
-    <a class="botao" href="{{ url('/horario-automatico/gerar') }}"><i class="fa fa-magic"></i> Gerar</a>
-    <a class="botao claro" href="{{ url('/horario-automatico/matriz') }}"><i class="fa fa-th-list"></i> Matriz</a>
-    <a class="botao claro" href="{{ url('/horario-automatico/choques') }}"><i class="fa fa-warning"></i> Conflitos</a>
+    <a class="botao icone" href="{{ url('/horario-automatico/gerar') }}" title="Gerar" aria-label="Gerar"><i aria-hidden="true" class="fa fa-magic"></i></a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/matriz') }}" title="Matriz" aria-label="Matriz"><i aria-hidden="true" class="fa fa-th-list"></i></a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/choques') }}" title="Conflitos" aria-label="Conflitos"><i aria-hidden="true" class="fa fa-warning"></i></a>
     @if(!empty($gradeBloqueada) && !empty($podeNovaVersao))
         <form method="post" action="{{ url('/horario-automatico/nova-versao') }}" style="display:inline">@csrf
-            <button class="botao claro" type="submit"><i class="fa fa-code-fork"></i> Nova versão</button>
+            <button class="botao claro icone" type="submit" title="Nova versão" aria-label="Nova versão"><i aria-hidden="true" class="fa fa-code-fork"></i></button>
         </form>
     @endif
     @if(empty($gradeBloqueada) && !empty($podeFazerValer))
         <form method="post" action="{{ url('/horario-automatico/fazer-valer') }}" style="display:inline" onsubmit="return confirm('Fazer valer congela a grade e propaga alocações ao diário. Continuar?')">@csrf
-            <button class="botao" type="submit"><i class="fa fa-check-circle"></i> Fazer valer</button>
+            <button class="botao icone" type="submit" title="Fazer valer" aria-label="Fazer valer"><i aria-hidden="true" class="fa fa-check-circle"></i></button>
         </form>
     @endif
 @endsection
@@ -334,7 +334,7 @@
                         @endforeach
                     </div>
                 @endforeach
-            @endif
+        @endif
         @endforeach
     </div>
 </div>

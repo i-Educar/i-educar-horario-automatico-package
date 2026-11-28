@@ -7,8 +7,17 @@
     Defina períodos, limites e preferências que a montagem automática deve respeitar em todas as escolas.
 @endsection
 @section('acoes-topo')
-    <a class="botao claro" href="{{ url('/horario-automatico/validar') }}"><i class="fa fa-check-square-o"></i> Verificar demanda</a>
-    <a class="botao claro" href="{{ url('/horario-automatico/gerar') }}"><i class="fa fa-magic"></i> Gerar quadro</a>
+    <button type="submit" form="form-diretivas" class="botao primaria icone" title="Salvar regras" aria-label="Salvar regras"><i aria-hidden="true" class="fa fa-save"></i></button>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/validar') }}" title="Verificar demanda" aria-label="Verificar demanda"><i aria-hidden="true" class="fa fa-check-square-o"></i></a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/gerar') }}" title="Gerar quadro" aria-label="Gerar quadro"><i aria-hidden="true" class="fa fa-magic"></i></a>
+@endsection
+
+@section('foco')
+<section class="buriti-foco">
+    <p class="buriti-foco-kicker">Regras da rede</p>
+    <h2 class="buriti-foco-titulo">Ano {{ $diretivas['ano'] ?? date('Y') }} · {{ (int)($diretivas['tempo_aula_minutos'] ?? 50) }} min/aula</h2>
+    <p class="buriti-foco-texto">Ajuste períodos, limites e preferências; salve pelo botão no topo.</p>
+</section>
 @endsection
 
 @section('conteudo')
@@ -17,7 +26,7 @@
     $periodosTxt = collect($d['periodos'] ?? [])->map(fn ($p) => ($p['inicio'] ?? '').'-'.($p['fim'] ?? '').'|'.($p['rotulo'] ?? '').'|'.($p['turno'] ?? ''))->implode("\n");
 @endphp
 
-<form method="post" action="{{ url('/horario-automatico/diretivas') }}" class="bloco">
+<form method="post" action="{{ url('/horario-automatico/diretivas') }}" class="bloco" id="form-diretivas">
     @csrf
             <label style="display:grid;gap:4px;margin:0 0 10px">Tempo padrão de aula (minutos)
                 <input type="number" name="tempo_aula_minutos" min="20" max="120" value="{{ (int)($diretivas['tempo_aula_minutos'] ?? 50) }}">

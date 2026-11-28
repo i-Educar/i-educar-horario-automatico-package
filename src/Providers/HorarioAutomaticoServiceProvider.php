@@ -44,6 +44,15 @@ class HorarioAutomaticoServiceProvider extends ServiceProvider
         ])->group($root.'/routes/web.php');
 
         View::composer('horario::*', function ($view): void {
+            if (class_exists(\iEducar\Packages\BuritiRhEducacional\Support\RhAgregacao::class)
+                && \iEducar\Packages\BuritiRhEducacional\Support\RhAgregacao::ativa()) {
+                $view->with('identidade', \iEducar\Packages\BuritiRhEducacional\Support\RhAgregacao::identidade());
+                $view->with('menuGrupos', \iEducar\Packages\BuritiRhEducacional\Support\RhAgregacao::menuGrupos());
+                $view->with('homeModulo', url(\iEducar\Packages\BuritiRhEducacional\Support\RhAgregacao::homeModulo()));
+                $view->with('nomeModulo', 'RH educacional');
+
+                return;
+            }
             $view->with('identidade', Identidade::tokens());
             $view->with('menuGrupos', MenuFluxo::grupos([
                 'painel' => true,

@@ -7,8 +7,8 @@
     Veja quando o mesmo professor ou a mesma turma ficaram com duas aulas no mesmo horário.
 @endsection
 @section('acoes-topo')
-    <a class="botao claro" href="{{ url('/horario-automatico/grade') }}"><i class="fa fa-table"></i> Ajustar quadro</a>
-    <a class="botao claro" href="{{ url('/horario-automatico') }}"><i class="fa fa-dashboard"></i> Início</a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/grade') }}" title="Ajustar quadro" aria-label="Ajustar quadro"><i aria-hidden="true" class="fa fa-table"></i></a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico') }}" title="Início" aria-label="Início"><i aria-hidden="true" class="fa fa-dashboard"></i></a>
 @endsection
 
 @section('conteudo')

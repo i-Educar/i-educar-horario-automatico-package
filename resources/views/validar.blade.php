@@ -7,8 +7,8 @@
     Antes de gerar o quadro, confira se faltam disciplinas, professores ou se há aulas a mais do que a semana comporta.
 @endsection
 @section('acoes-topo')
-    <a class="botao claro" href="{{ url('/horario-automatico/matriz') }}"><i class="fa fa-th-list"></i> Matriz</a>
-    <a class="botao" href="{{ url('/horario-automatico/gerar') }}"><i class="fa fa-magic"></i> Gerar quadro</a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/matriz') }}" title="Matriz" aria-label="Matriz"><i aria-hidden="true" class="fa fa-th-list"></i></a>
+    <a class="botao icone" href="{{ url('/horario-automatico/gerar') }}" title="Gerar quadro" aria-label="Gerar quadro"><i aria-hidden="true" class="fa fa-magic"></i></a>
 @endsection
 
 @section('conteudo')

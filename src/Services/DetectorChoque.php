@@ -92,11 +92,11 @@ final class DetectorChoque
      * @param  list<array{professor_id:int,dia:int,inicio:string,fim:string}>  $aulas
      * @return list<array{0:int,1:int}>
      */
-    public static function choques(array $aulas): array
+    public static function choques(array $aulas, ?array $diretivas = null): array
     {
         $seen = [];
         $out = [];
-        foreach (self::detalhar($aulas) as $c) {
+        foreach (self::detalhar($aulas, $diretivas) as $c) {
             $key = $c['i'].'-'.$c['j'];
             if (isset($seen[$key])) {
                 continue;

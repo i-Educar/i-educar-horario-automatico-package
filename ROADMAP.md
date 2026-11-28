@@ -1,7 +1,7 @@
 # ROADMAP — Geração Automática de Horário
 
 > Pacote: `buriti/i-educar-horario-automatico-package` · TR **5.11** · Prioridade **P0** · Nota **D**  
-> Alinhado a `tmp/DOC-EXECUTIVO-PE-77-2026-LAGUNA-IEDUCAR.md`
+> Alinhado a `packages/buriti/docs/laguna/DOC-EXECUTIVO-PE-77-2026-LAGUNA-IEDUCAR.md`
 
 ## Visão
 

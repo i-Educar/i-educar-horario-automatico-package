@@ -7,9 +7,9 @@
     O sistema distribui as aulas da matriz pelos dias da semana, respeitando as regras da rede e os professores vinculados.
 @endsection
 @section('acoes-topo')
-    <a class="botao claro" href="{{ url('/horario-automatico/validar') }}"><i class="fa fa-check-square-o"></i> Verificar antes</a>
-    <a class="botao claro" href="{{ url('/horario-automatico/matriz') }}"><i class="fa fa-th-list"></i> Matriz</a>
-    <a class="botao claro" href="{{ url('/horario-automatico/grade') }}"><i class="fa fa-table"></i> Quadro</a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/validar') }}" title="Verificar antes" aria-label="Verificar antes"><i aria-hidden="true" class="fa fa-check-square-o"></i></a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/matriz') }}" title="Matriz" aria-label="Matriz"><i aria-hidden="true" class="fa fa-th-list"></i></a>
+    <a class="botao claro icone" href="{{ url('/horario-automatico/grade') }}" title="Quadro" aria-label="Quadro"><i aria-hidden="true" class="fa fa-table"></i></a>
 @endsection
 
 @section('conteudo')
